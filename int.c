@@ -5,8 +5,8 @@
 #include <pthread.h>
 #include <unistd.h> // Para a função sleep()
 
-* Compilação: mpicc -o exemplo exemplo.c
- * Execução:   mpiexec -n 3 ./exemplo
+//Compilação: mpicc -o int int.c
+//Execução:   mpiexec -n 3 ./int
 
 
 // Estruturas e funções para a fila de relógios
@@ -124,16 +124,17 @@ void Event(int pid, Clock *clock) {
 
 void Send(int pid, int my_id, Clock *clock) {
     clock->p[my_id]++;
-    MPI_Send(&(clock->p), 3, MPI_INT, pid, 1, MPI_COMM_WORLD);
+    enfileirar(&saidaFila, received_clock);
+
     printf("Processo: %d enviou Clock para %d: (%d, %d, %d)\n", my_id, pid, clock->p[0], clock->p[1], clock->p[2]);
 }
 
 void Receive(int pid, int my_id, Clock *clock) {
-    int received_clock[3];
     clock->p[my_id]++;
-    MPI_Recv(received_clock, 3, MPI_INT, pid, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    Clock clock_received;
+    clock_received = *desenfileirar(&entradaFila);
     for (int i = 0; i < 3; i++) {
-        clock->p[i] = max(clock->p[i], received_clock[i]);
+        clock->p[i] = max(clock->p[i], clock_received[i]);
     }
     printf("Processo: %d recebeu Clock de: %d. (%d, %d, %d)\n", my_id, pid, clock->p[0], clock->p[1], clock->p[2]);
 } 
